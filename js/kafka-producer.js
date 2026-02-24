@@ -218,7 +218,7 @@ module.exports = function (RED) {
                         }
 
                         const registeredSchema = await node.schemaRegistry.register({
-                            type: 'AVRO',
+                            type: 'PROTOBUF',
                             schema: JSON.stringify(schemaObject)
                         }, {
                             subject: config.schemaSubject
