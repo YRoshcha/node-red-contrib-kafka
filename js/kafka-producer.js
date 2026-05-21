@@ -112,7 +112,7 @@ module.exports = function (RED) {
                             return;
                         }
                     } else {
-                        node.debug(`[Kafka Protobuf Raw] No Schema Registry – raw encoding`);
+                        node.debug(`[Kafka Protobuf Raw] No Schema Registry â raw encoding`);
                         node.status({ fill: 'yellow', shape: 'ring', text: 'Protobuf raw mode' });
                     }
 
@@ -182,7 +182,7 @@ module.exports = function (RED) {
             }
         };
 
-        // ── Avro: get / auto-register schema from Confluent SR ───────────────────
+        // ââ Avro: get / auto-register schema from Confluent SR âââââââââââââââââââ
         node.getOrRegisterAvroSchema = async function () {
             const version = config.schemaVersion && config.schemaVersion.trim() !== ''
                 ? config.schemaVersion.trim() : 'latest';
@@ -223,7 +223,7 @@ module.exports = function (RED) {
             return schemaId;
         };
 
-        // ── Protobuf + Schema Registry: register .proto and encode ───────────────
+        // ââ Protobuf + Schema Registry: register .proto and encode âââââââââââââââ
         //    Registers the .proto definition in Confluent SR (type PROTOBUF),
         //    then uses schemaRegistry.encode() which prepends the Confluent wire
         //    format header (magic byte 0x00 + 4-byte schema ID).
@@ -265,7 +265,7 @@ module.exports = function (RED) {
             return schemaId;
         };
 
-        // ── Protobuf raw: pure protobufjs encoding, no Schema Registry ────────────
+        // ââ Protobuf raw: pure protobufjs encoding, no Schema Registry ââââââââââââ
         node.encodeProtobufRaw = function (messageData) {
             if (!node.protobufType) {
                 throw new Error('Protobuf type not loaded. Check your .proto schema definition.');
@@ -276,7 +276,7 @@ module.exports = function (RED) {
             return Buffer.from(node.protobufType.encode(protoMsg).finish());
         };
 
-        // ── Input handler ─────────────────────────────────────────────────────────
+        // ââ Input handler âââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
         node.on('input', async function (msg) {
             const serializationType = config.serializationType || 'avro';
             const protobufMode      = config.protobufMode || 'registry';
@@ -326,7 +326,7 @@ module.exports = function (RED) {
                     if (serializationType === 'protobuf') {
 
                         if (protobufMode === 'registry') {
-                            // ── Protobuf + Schema Registry (priority) ─────────────
+                            // ââ Protobuf + Schema Registry (priority) âââââââââââââ
                             node.debug(`[Kafka Protobuf SR] Encoding via Schema Registry`);
                             node.status({ fill: 'blue', shape: 'dot', text: 'Encoding (proto-sr)' });
 
@@ -351,10 +351,22 @@ module.exports = function (RED) {
 
                             // schemaRegistry.encode prepends magic byte + schema ID header
                             serializedValue = await node.schemaRegistry.encode(schemaId, messageData);
+
+                            // Confluent Protobuf wire format requires a message index byte (0x00 for
+                            // the first/only message type) at position 5, right after the 5-byte header
+                            // (magic byte 0x00 + 4-byte schema ID). Some SR client versions omit it.
+                            if (serializedValue.length > 5 && serializedValue.readUInt8(5) !== 0) {
+                                const patched = Buffer.alloc(serializedValue.length + 1);
+                                serializedValue.copy(patched, 0, 0, 5);   // copy 5-byte header
+                                patched.writeUInt8(0, 5);                  // insert message index 0x00
+                                serializedValue.copy(patched, 6, 5);       // copy protobuf payload
+                                serializedValue = patched;
+                                node.debug('[Kafka Protobuf SR] Inserted missing Confluent message index byte');
+                            }
                             node.debug(`[Kafka Protobuf SR] Encoded with schema ID: ${schemaId}`);
 
                         } else {
-                            // ── Protobuf raw (no Schema Registry) ─────────────────
+                            // ââ Protobuf raw (no Schema Registry) âââââââââââââââââ
                             node.debug(`[Kafka Protobuf Raw] Encoding with protobufjs`);
                             node.status({ fill: 'blue', shape: 'dot', text: 'Encoding (proto-raw)' });
 
@@ -380,7 +392,7 @@ module.exports = function (RED) {
                         }
 
                     } else {
-                        // ── Avro + Schema Registry ─────────────────────────────────
+                        // ââ Avro + Schema Registry âââââââââââââââââââââââââââââââââ
                         node.debug(`[Kafka Avro SR] Encoding via Schema Registry`);
                         node.status({ fill: 'blue', shape: 'dot', text: 'Encoding (avro)' });
 
