@@ -1,4 +1,4 @@
-<script type="text/html" data-help-name="oriolrius-kafka-producer">
+<script type="text/html" data-help-name="yroshcha-kafka-producer">
     <p>Send messages to a Kafka topic.</p>
     <p>This node publishes the incoming message payload to the specified Kafka topic.</p>
     <p>Supports three serialization modes:</p>
@@ -10,7 +10,7 @@
     <p>Node status shows: <code>[avro]</code>, <code>[proto-sr]</code>, or <code>[proto-raw]</code>.</p>
 </script>
 
-<script type="text/html" data-template-name="oriolrius-kafka-producer">
+<script type="text/html" data-template-name="yroshcha-kafka-producer">
 
     <div class="form-row">
         <label for="node-input-name"><i class="fa fa-tag"></i> Name </label>
@@ -197,13 +197,13 @@
 </script>
 
 <script type="text/javascript">
-    RED.nodes.registerType('oriolrius-kafka-producer', {
+    RED.nodes.registerType('yroshcha-kafka-producer', {
         category: 'IOT',
         paletteLabel: "Kafka Send",
         color: '#CE93D8',
         defaults: {
             name: { required: false },
-            broker: { type: "oriolrius-kafka-broker" },
+            broker: { type: "yroshcha-kafka-broker" },
             topic: { required: true },
             requireAcks: { value: 1, required: true },
             ackTimeoutMs: { value: 100, required: true },
