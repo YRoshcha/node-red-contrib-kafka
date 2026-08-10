@@ -197,6 +197,9 @@
 </script>
 
 <script type="text/javascript">
+(function() {
+"use strict";
+
     RED.nodes.registerType('yroshcha-kafka-producer', {
         category: 'IOT',
         paletteLabel: "Kafka Send",
@@ -399,4 +402,6 @@
             this.fields = fields;
         }
     });
+
+})();
 </script>
